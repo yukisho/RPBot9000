@@ -11,3 +11,6 @@ To have the bot join your channel, use /join in the channel specified in botconf
 
 #### Twitch:  
 The bot will never say anything in a Twitch channel. It will only listen for ban events then report them in Discord.
+
+## Support
+To get support on this code, please contact me via Discord at Gravvy#9440
