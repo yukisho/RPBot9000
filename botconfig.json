@@ -1,0 +1,22 @@
+{
+    "token": "DISCORD APP TOKEN",
+    "clientId": "TWITCH CLIENTID",
+    "debug": false,
+    "cluster": "aws",
+    "reconnect": true,
+    "maxReconnectInterval": 60000,
+    "reconnectInterval": 2000,
+    "secure": true,
+    "username": "BOT TWITCH USERNAME",
+    "password": "OAUTH PASSWORD",
+    "prefix": "/",
+    "botChannel": "rpbot9000",
+    "chatBans": "chat-bans",
+    "FUNC_DIR": "functions",
+    "CHAN_DIR": "channels",
+    "modBot": "Please /mod RPBot9000 to ensure the bot does not get banned.",
+    "jsonExt": "json",
+    "hasJoined": "RPBot9000 has joined channel",
+    "alreadyJoined": "RPBot9000 is already in channel",
+    "botDisconnected": "RPBot9000 disconnected."
+}
