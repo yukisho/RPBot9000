@@ -1,0 +1,22 @@
+{
+    "token": "NjU5OTY2NTY4MDgzNzUwOTMy.XgV_yw.9vxo8Ri3bmbfXiF18jG5y_tupIA",
+    "clientId": "ssw6mekc8hjgdlks0hgh8v1xhfw489",
+    "debug": false,
+    "cluster": "aws",
+    "reconnect": true,
+    "maxReconnectInterval": 60000,
+    "reconnectInterval": 2000,
+    "secure": true,
+    "username": "RPBot9000",
+    "password": "oauth:6xrgscvp3z67p9nsyzncnj5ygsfqha",
+    "prefix": "/",
+    "botChannel": "rpbot9000",
+    "chatBans": "chat-bans",
+    "FUNC_DIR": "functions",
+    "CHAN_DIR": "channels",
+    "modBot": "Please /mod RPBot9000 to ensure the bot does not get banned.",
+    "jsonExt": "json",
+    "hasJoined": "RPBot9000 has joined channel",
+    "alreadyJoined": "RPBot9000 is already in channel",
+    "botDisconnected": "RPBot9000 disconnected."
+}
