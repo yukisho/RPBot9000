@@ -26,14 +26,15 @@ bot.on("message", async message => {
 
     if(message.content.startsWith(botconfig.prefix))
     {
+        //If the channel the command is ran is not the bot channel, delete the message
         if(thisChannel !== botChannel)return message.delete();
         
         //if the command is the /join command in discord
         if(cmd === "join")
         {
-            var sender = message.member.user;
-            var chn = args;
-            var file = `./${botconfig.CHAN_DIR}/${chn}.${botconfig.jsonExt}`;
+            var sender = message.member.user;//Get the sender name of the command
+            var chn = args;//Get the channel name from the command
+            var file = `./${botconfig.CHAN_DIR}/${chn}.${botconfig.jsonExt}`;//Define the channel file name
 
             //Check to see if the channel file exists
             if(fs.existsSync(file) === false)
@@ -100,17 +101,20 @@ const options = {
     channels: cNames,
 }
 
+//Create a new TMI client instance
 const client = new tmi.client(options);
 
+//Connect the bot to all Twitch channels
 client.connect();
 
 client.on("connected", (address, port) => {
-    //Logs connection status to channel(s)
+    //Create counter for connected channels
     var conChannels = 0;
 
+    //Logs connection status to channel(s)
     for(var i = 0; i < options.channels.length; i++)
     {
-        conChannels += 1;
+        conChannels += 1;//Increase the connected channels counter
         var chan = options.channels[i];
         console.log(chan, "is connected.");//Log connection status to the console
     }
@@ -120,11 +124,12 @@ client.on("connected", (address, port) => {
 
 //Triggered upon joining a channel. Gives you the current state of the channel.
 client.on("roomstate", (channel, state) => {
-    //Check to see if channels json file exists
+    //Define the channel file
     var file = `./${botconfig.CHAN_DIR}/${channel.slice(1)}.${botconfig.jsonExt}`;
 
+    //Check to see if channels json file exists
     fsextra.ensureFile(file).then(() => {
-        //
+        //Nothing needs to be done here
     }).catch(err => {
         console.log(`ensureFile: ${err}`);
     });
@@ -135,7 +140,7 @@ client.on("disconnected", (reason) => {
     for(var i = 0; i < options.channels.length; i++)
     {
         var chan = options.channels[i];
-        console.log(chan, botconfig.botDisconnected);
+        console.log(chan, botconfig.botDisconnected);//Log in the console that the bot has disconnected from a twitch channel
     }
 });
 
@@ -147,7 +152,7 @@ client.on("ban", (channel, username, reason, userstate) => {
     var usrnme = username;//Get the username of the user that was banned
 
     var file = `./${botconfig.CHAN_DIR}/${channel.slice(1)}.${botconfig.jsonExt}`;//Define the channel file name to be created
-    var d = new Date();
+    var d = new Date();//Create a new date from the current time and date
     var day = d.getDate();//Get current day
     var month = d.getMonth();//Get current month
     var year = d.getFullYear();//Get current year
