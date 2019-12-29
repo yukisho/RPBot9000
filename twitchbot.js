@@ -3,7 +3,7 @@
 ///////////////////
 const botconfig = require("./botconfig.json");
 const Discord = require("discord.js");
-const discordFunctions = require(`./functions/discordfunctions.js`);
+const discordFunctions = require(`./functions/discordfunctions.js`);//Not used at the moment
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
 
@@ -71,7 +71,7 @@ const tmi = require("tmi.js");
 const fs = require("fs");
 const fsextra = require("fs-extra");
 const jsonfile = require("jsonfile");
-const twitchFunctions = require(`./functions/twitchfunctions.js`);
+const twitchFunctions = require(`./functions/twitchfunctions.js`);//Not used at the moment
 const channelNames = fs.readdirSync(`./channels/`);
 let cNames = [];
 
