@@ -1,10 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                ToDo List                                               //
+//                                                                                                        //
+//              Create a function on the twitch bot to check for unban events then remove                 //
+//              that user from the channel file                                                           //
+//                                                                                                        //
+//                                                                                                        //
+//                                                                                                        //
+//                                                                                                        //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 ///////////////////
 ////DISCORD BOT////
 ///////////////////
 const botconfig = require("./botconfig.json");
 const Discord = require("discord.js");
 const fs = require("fs");
-const firstline = require("firstline");
+const path = require('path');
 const discordFunctions = require(`./functions/discordfunctions.js`);
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
@@ -34,6 +47,12 @@ bot.on("message", async message => {
         //Verify the discord user is the broadcaster for the twitch channel
         if(cmd === "verify")
         {
+            if(args === null || args === "" || !args)
+            {
+                message.channel.send("To verify your channel please use ``/verify VerificationCode``");
+                return message.delete();
+            }
+
             var sender = message.member.user;//Get the sender name of the command
             var type = args.charAt(0);
             var code = args.slice(1);//Get the channel name from the command
@@ -119,7 +138,12 @@ bot.on("message", async message => {
         //if the command is the /join command in discord
         if(cmd === "join")
         {
-            if(args === null || args === "")return message.delete();
+            if(args === null || args === "" || !args)
+            {
+                message.channel.send("To have the bot join your channel please use ``/join ChannelName``");
+                return message.delete();
+            }
+
             var sender = message.member.user;//Get the sender name of the command
             var senderID = message.member.id;//Get the discord user id
             var senderTag = message.member.user.tag;//Get the discord user id
@@ -159,7 +183,12 @@ bot.on("message", async message => {
         //
         if(cmd === "leave")
         {
-            if(args === null || args === "")return message.delete();
+            if(args === null || args === "" || !args)
+            {
+                message.channel.send("To have the bot leave your channel, please use ``/leave ChannelName``");
+                return message.delete();
+            }
+
             var sender = message.member.user;//Get the sender name of the command
             var senderID = message.member.id;//Get the discord user id
             var senderTag = message.member.user.tag;//Get the discord user id
@@ -199,7 +228,12 @@ bot.on("message", async message => {
         //Check how many people banned in a channel
         if(cmd === "bans")
         {
-            if(args === null || args === "")return message.delete();
+            if(args === null || args === "" || !args)
+            {
+                message.channel.send("Please include the Twitch channel name. ``/bans ChannelName``");
+                return message.delete();
+            }
+
             var sender = message.member.user;//Get the sender name of the command
             var canContinue = null;
             var chn = args;
@@ -225,6 +259,74 @@ bot.on("message", async message => {
                     return message.channel.send(`A total of **${banCount}** bans have been recorded in **${chn}**.`);
                 })
             }
+        }
+        //Check if a user is banned in channels
+        if(cmd === "banned")
+        {
+            if(args === null || args === "" || !args)
+            {
+                message.channel.send("Please use ``/banned TwitchName``");
+                return message.delete();
+            }
+
+            var userName = args;
+            var bannedChannels = new Array();
+
+            function searchFilesInDirectory(dir, filter, ext) {
+                if (!fs.existsSync(dir)) {
+                    console.log(`Specified directory: ${dir} does not exist`);
+                    return;
+                }
+            
+                const files = getFilesInDirectory(dir, ext);
+            
+                files.forEach(file => {
+                    const fileContent = fs.readFileSync(file);
+            
+                    // We want full words, so we use full word boundary in regex.
+                    const regex = new RegExp('\\b' + filter + '\\b');
+                    if (regex.test(fileContent)) {
+                        file = file.slice(9, -5);
+                        bannedChannels.push(file);
+                    }
+                });
+            }
+
+            function getFilesInDirectory(dir, ext) {
+                if (!fs.existsSync(dir)) {
+                    console.log(`Specified directory: ${dir} does not exist`);
+                    return;
+                }
+            
+                let files = [];
+                fs.readdirSync(dir).forEach(file => {
+                    const filePath = path.join(dir, file);
+                    const stat = fs.lstatSync(filePath);
+            
+                    // If we hit a directory, apply our function to that dir. If we hit a file, add it to the array of files.
+                    if (stat.isDirectory()) {
+                        const nestedFiles = getFilesInDirectory(filePath, ext);
+                        files = files.concat(nestedFiles);
+                    } else {
+                        if (path.extname(file) === ext) {
+                            files.push(filePath);
+                        }
+                    }
+                });
+            
+                return files;
+            }
+
+            searchFilesInDirectory("./channels/", userName, ".json");
+            var channelNames = "";
+
+            for(var n = 0; n < bannedChannels.length; n++)
+            {
+                //
+                channelNames += `**${bannedChannels[n]}**\n`;
+            }
+
+            return message.channel.send(`*__${userName}__* is currently banned in the following channels:\n${channelNames}`);
         }
 
         //Command list
@@ -259,7 +361,7 @@ const twitchFunctions = require(`./functions/twitchfunctions.js`);//Not used at 
 const channelNames = fs.readdirSync(`./channels/`);
 const logBans = true;
 const logTimeouts = false;
-let cNames = [];
+let cNames = new Array();
 
 //Get each channel file name and remove the file extension then add the name to the array
 channelNames.forEach(function(element){
