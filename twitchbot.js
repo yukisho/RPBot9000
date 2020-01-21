@@ -42,7 +42,7 @@ bot.on("message", async message => {
     if(message.content.startsWith(botconfig.prefix))
     {
         //If the channel the command is ran is not the bot channel, delete the message
-        if(thisChannel !== botChannel)return message.delete();
+        if(thisChannel !== botChannel)return;
 
         //Verify the discord user is the broadcaster for the twitch channel
         if(cmd === "verify")
@@ -351,6 +351,8 @@ bot.login(botconfig.token);
 
 
 
+
+
 //////////////////
 ////TWITCH BOT////
 //////////////////
@@ -439,7 +441,6 @@ client.on("ban", (channel, username, reason, userstate) => {
         let logChannel = bot.channels.find(c => c.name === chatBans);//Get the channel from discord
         var chn = channel.slice(1);//Remove the # from the twitch channel name
         var usrnme = username;//Get the username of the user that was banned
-
         var file = `./channels/${channel.slice(1)}.json`;//Define the channel file name to be created
         var d = new Date();//Create a new date from the current time and date
         var day = d.getDate();//Get current day
@@ -447,6 +448,18 @@ client.on("ban", (channel, username, reason, userstate) => {
         var year = d.getFullYear();//Get current year
         var dte = `${month}-${day}-${year}`;//Combine current day/month/year
         var obj = { name: `${usrnme}`, reason: `${reason}`, date: `${dte}` };//Define what will be put into the channel file
+
+        //If the bot is banned from a channel
+        if(usrnme === "rpbot9000" || usrnme === "RPBot9000")
+        {
+            //Delete that channels file
+            fs.unlink(file, (err) => {
+                if(err)return console.log(err);
+            });
+
+            //Manually leave channel to make sure the bot does not reconnect
+            return client.part(`#${chn}`).then((data) => {return console.log(`RPBot9000 was banned from channel ${chn}`)}).catch((err) => {return console.log(`LEAVE Error: ${err} | ${chn}`);});
+        }
 
         //Write banned user information to the channel file
         jsonfile.writeFile(file, obj, {flag: "a"}, function (err) {
