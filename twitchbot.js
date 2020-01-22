@@ -30,6 +30,9 @@ bot.on("ready", async () => {
 });
 
 bot.on("message", async message => {
+    var serverArray = botconfig.allowedServers;//Get list of allowed discord servers
+    var serverID = message.guild.id;//Get the current discord server IDs
+    if(serverArray.indexOf(serverID) === -1) return;//Check if the bot is on any other discord servers but the ones it should be on
     if(message.author.bot) return;//If the message is from the bot, ignore the message
     if(message.channel.type === "dm") return;//If the message is in a direct message, ignore it
 
