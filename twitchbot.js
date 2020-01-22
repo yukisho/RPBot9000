@@ -64,13 +64,7 @@ bot.on("message", async message => {
                 var code = args;//Get the channel name from the command
                 var codeVerified = null;
                 var type = contents.type;
-
-                console.log(`type: ${type}`);
-                console.log(`code: ${code}`);
-                console.log(`file: ${file}`);
-                console.log(`args: ${args}`);
-
-                if(type === "leave")return message.channel.send(`${sender}, the code you provided is incorrect. Please check the code and try again.`);
+                var chn = contents.channel;
 
                 if(code === contents.code)
                 {
@@ -94,7 +88,6 @@ bot.on("message", async message => {
 
             if(codeVerified === true)
             {
-                var chn = contents.channel;
                 var file = `./channels/${chn}.json`;//Define the channel file name
 
                 if(type === "join")
@@ -508,11 +501,14 @@ client.on("timeout", (channel, username, reason, duration, userstate) => {
     }
 });
 
+//Receieve a whisper from a user on twitch
 client.on("whisper", (from, userstate, message, self) => {
-    if(self)return;
+    if(self)return;//If the whisper is from myself, ignore it
+
+    //Send a reply to the user that sent the whisper
     return client.whisper(from, "Uh oh! I'm just a bot! If you are intrested in adding this bot to your twitch channel, please visit us on discord at https://discord.io/rpbot9000").then((data) => {
         // data returns [username, message]
     }).catch((err) => {
-        console.log(err);
+        console.log(err);//Log all errors
     });
 })
