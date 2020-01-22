@@ -47,26 +47,32 @@ bot.on("message", async message => {
         //Verify the discord user is the broadcaster for the twitch channel
         if(cmd === "verify")
         {
+            var sender = message.member.user;//Get the sender name of the command
+
             if(args === null || args === "" || !args)
             {
-                message.channel.send("To verify your channel please use ``/verify VerificationCode``");
+                message.channel.send(`${sender}, To verify your channel please use ``/verify VerificationCode`` `);
                 return message.delete();
             }
 
-            var sender = message.member.user;//Get the sender name of the command
-            var type = args.charAt(0);
-            var code = args.slice(1);//Get the channel name from the command
-            var file = `./code/${code}.json`;//Define the channel file name
-            var codeVerified = null;
-
-            if(type !== "J" || type !== "L")return message.channel.send(`${sender}, the code you provided is incorrect. Please check the code and try again.`);
+            var file = `./code/${args}.json`;//Define the channel file name
 
             if(fs.existsSync(file) === true)
             {
                 var contents = JSON.stringify(jsonfile.readFileSync(file));
                 var contents = JSON.parse(contents);
+                var code = args;//Get the channel name from the command
+                var codeVerified = null;
+                var type = contents.type;
 
-                if(args === contents.code)
+                console.log(`type: ${type}`);
+                console.log(`code: ${code}`);
+                console.log(`file: ${file}`);
+                console.log(`args: ${args}`);
+
+                if(type === "leave")return message.channel.send(`${sender}, the code you provided is incorrect. Please check the code and try again.`);
+
+                if(code === contents.code)
                 {
                     //Delete the code file for the channel
                     fs.unlink(file, (err) => {
@@ -81,13 +87,17 @@ bot.on("message", async message => {
                     return message.channel.send(`${sender}, the code you entered is incorrect. Please check the code and try again.`);
                 }
             }
+            else
+            {
+                return message.channel.send(`${sender}, I'm sorry but I can't seem to find that verification code.`);
+            }
 
             if(codeVerified === true)
             {
                 var chn = contents.channel;
                 var file = `./channels/${chn}.json`;//Define the channel file name
 
-                if(type === "J")
+                if(type === "join")
                 {
                     //Check to see if the channel file exists
                     if(fs.existsSync(file) === false)
@@ -110,7 +120,7 @@ bot.on("message", async message => {
                     }
                 }
 
-                if(type === "L")
+                if(type === "leave")
                 {
                     //Check to see if the channel file exists
                     if(fs.existsSync(file) === false)
@@ -149,8 +159,8 @@ bot.on("message", async message => {
             var senderTag = message.member.user.tag;//Get the discord user id
             var chn = args;//Get the channel name from the command
             var code = discordFunctions.generateCode();//Generate a random 6 digit code
-            var file = `./code/J${code}.json`;//Define the code file name for the channel
-            var obj = { code: `J${code}`, channel: `${chn}`, discordID: `${senderID}`, discordName: `${senderTag}` };//Define what will be put into the verification code file
+            var file = `./code/${code}.json`;//Define the code file name for the channel
+            var obj = { code: `${code}`, channel: `${chn}`, discordID: `${senderID}`, discordName: `${senderTag}`, type: `join` };//Define what will be put into the verification code file
             var canContinue = null;
 
             if(fs.existsSync(file) === false)
@@ -171,7 +181,7 @@ bot.on("message", async message => {
 
             if(canContinue)
             {
-                client.whisper(`${chn}`, `Your verification code is: J${code}`).then((data) => {
+                client.whisper(`${chn}`, `Your verification code is: ${code}`).then((data) => {
                     /*data returns [username, message]*/
                     return message.channel.send(`${sender}, A whisper has been sent to **${data[0]}** on Twitch, please use !verify with the code sent to you.`);
                 }).catch((err) => {
@@ -194,8 +204,8 @@ bot.on("message", async message => {
             var senderTag = message.member.user.tag;//Get the discord user id
             var chn = args;//Get the channel name from the command
             var code = discordFunctions.generateCode();//Generate a random 6 digit code
-            var file = `./code/L${code}.json`;//Define the code file name for the channel
-            var obj = { code: `L${code}`, channel: `${chn}`, user: `${senderID}`, discordName: `${senderTag}` };//Define what will be put into the verification code file
+            var file = `./code/${code}.json`;//Define the code file name for the channel
+            var obj = { code: `${code}`, channel: `${chn}`, user: `${senderID}`, discordName: `${senderTag}`, type: `leave` };//Define what will be put into the verification code file
             var canContinue = null;
 
             if(fs.existsSync(file) === false)
@@ -216,7 +226,7 @@ bot.on("message", async message => {
 
             if(canContinue)
             {
-                client.whisper(`${chn}`, `Your verification code is: L${code}`).then((data) => {
+                client.whisper(`${chn}`, `Your verification code is: ${code}`).then((data) => {
                     /*data returns [username, message]*/
                     return message.channel.send(`${sender}, A whisper has been sent to **${data[0]}** on Twitch, please use !verify with the code sent to you.`);
                 }).catch((err) => {
@@ -497,3 +507,12 @@ client.on("timeout", (channel, username, reason, duration, userstate) => {
         return logChannel.send("```css"+`\n.TimedOut_User\n+[Channel:] ${chn}\n+[User:] ${usrnme}\n+[Duration:] ${duration}\n+[Date:] ${dte}`+"```");
     }
 });
+
+client.on("whisper", (from, userstate, message, self) => {
+    if(self)return;
+    return client.whisper(from, "Uh oh! I'm just a bot! If you are intrested in adding this bot to your twitch channel, please visit us on discord at https://discord.io/rpbot9000").then((data) => {
+        // data returns [username, message]
+    }).catch((err) => {
+        console.log(err);
+    });
+})
