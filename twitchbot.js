@@ -18,7 +18,7 @@ const botconfig = require("./botconfig.json");
 const Discord = require("discord.js");
 const fs = require("fs");
 const path = require('path');
-const discordFunctions = require(`./functions/discordfunctions.js`);
+const discordFunctions = require(`./functions/discord.js`);
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
 
@@ -108,7 +108,7 @@ bot.login(botconfig.token);
 const tmi = require("tmi.js");
 const fsextra = require("fs-extra");
 const jsonfile = require("jsonfile");
-const twitchFunctions = require(`./functions/twitchfunctions.js`);//Not used at the moment
+const twitchFunctions = require(`./functions/twitch.js`);//Not used at the moment
 const channelNames = fs.readdirSync(`./channels/`);
 const logBans = true;
 const logTimeouts = false;
