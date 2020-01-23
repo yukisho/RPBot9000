@@ -24,8 +24,8 @@ bot.commands = new Discord.Collection();
 
 bot.on("ready", async () => {
     var DATE = new Date();//Get current time and date
-    console.log(`${bot.user.username} is online on ${bot.guilds.size} discord server!`);//Log to console the bots connection status to discord servers
-    console.log(`Time: ${DATE}`);//Log the time and date the connection occured
+    console.log(`${bot.user.username} is online on [${bot.guilds.size}] Discord server(s)!`);//Log to console the bots connection status to discord servers
+    console.log(`Timestamp: ${DATE}`);//Log the time and date the connection occured
     bot.user.setActivity("with Twitch API", {type: "PLAYING"});//Set the bot status message in discord
 });
 
@@ -50,289 +50,32 @@ bot.on("message", async message => {
         //Verify the discord user is the broadcaster for the twitch channel
         if(cmd === "verify")
         {
-            var sender = message.member.user;//Get the sender name of the command
-
-            if(args === null || args === "" || !args)
-            {
-                message.channel.send(`${sender}, To verify your channel please use ``/verify VerificationCode`` `);
-                return message.delete();
-            }
-
-            var file = `./code/${args}.json`;//Define the channel file name
-
-            if(fs.existsSync(file) === true)
-            {
-                var contents = JSON.stringify(jsonfile.readFileSync(file));
-                var contents = JSON.parse(contents);
-                var code = args;//Get the channel name from the command
-                var codeVerified = null;
-                var type = contents.type;
-                var chn = contents.channel;
-
-                if(code === contents.code)
-                {
-                    //Delete the code file for the channel
-                    fs.unlink(file, (err) => {
-                        if(err)return console.log(err);
-                    });
-
-                    codeVerified = true;
-                }
-                else
-                {
-                    codeVerified = false;
-                    return message.channel.send(`${sender}, the code you entered is incorrect. Please check the code and try again.`);
-                }
-            }
-            else
-            {
-                return message.channel.send(`${sender}, I'm sorry but I can't seem to find that verification code.`);
-            }
-
-            if(codeVerified === true)
-            {
-                var file = `./channels/${chn}.json`;//Define the channel file name
-
-                if(type === "join")
-                {
-                    //Check to see if the channel file exists
-                    if(fs.existsSync(file) === false)
-                    {
-                        //If the channel file does not exist, create it and have the bot join the channel
-                        fsextra.ensureFile(file).then(() => {
-                            //Join the twitch channel
-                            client.join(`#${chn}`).then((data) => {}).catch((err) => {return console.log(`JOIN Error: ${err} | ${chn}`);});
-                            //Tell the user the bot has joined the twitch channel
-                            return message.channel.send(`${sender}, RPBot9000 has joined channel **${chn}**! Please /mod RPBot9000 to ensure the bot does not get banned.`);
-                        }).catch(err => {
-                            //Log error in console
-                            return console.log(`ensureFile: ${err}`);
-                        });
-                    }
-                    else
-                    {
-                        //If the channel file does exist, tell the user it exists
-                        return message.channel.send(`${sender}, RPBot9000 is already in channel **${chn}**! Please /mod RPBot9000 to ensure the bot does not get banned.`);
-                    }
-                }
-
-                if(type === "leave")
-                {
-                    //Check to see if the channel file exists
-                    if(fs.existsSync(file) === false)
-                    {
-                        //If the channel file does not exist, create it and have the bot join the channel
-                        fsextra.ensureFile(file).then(() => {
-                            //Join the twitch channel
-                            client.part(`#${chn}`).then((data) => {}).catch((err) => {return console.log(`LEAVE Error: ${err} | ${chn}`);});
-                            //Tell the user the bot has joined the twitch channel
-                            return message.channel.send(`${sender}, RPBot9000 has left channel **${chn}**!`);
-                        }).catch(err => {
-                            //Log error in console
-                            return console.log(`ensureFile: ${err}`);
-                        });
-                    }
-                    else
-                    {
-                        //If the channel file does exist, tell the user it exists
-                        return message.channel.send(`${sender}, RPBot9000 is not in channel **${chn}**!`);
-                    }
-                }
-            }
+            discordFunctions.verifyChannel(args, message, fs, fsextra, jsonfile, client);
         }
         
         //if the command is the /join command in discord
         if(cmd === "join")
         {
-            if(args === null || args === "" || !args)
-            {
-                message.channel.send("To have the bot join your channel please use ``/join ChannelName``");
-                return message.delete();
-            }
-
-            var sender = message.member.user;//Get the sender name of the command
-            var senderID = message.member.id;//Get the discord user id
-            var senderTag = message.member.user.tag;//Get the discord user id
-            var chn = args;//Get the channel name from the command
-            var code = discordFunctions.generateCode();//Generate a random 6 digit code
-            var file = `./code/${code}.json`;//Define the code file name for the channel
-            var obj = { code: `${code}`, channel: `${chn}`, discordID: `${senderID}`, discordName: `${senderTag}`, type: `join` };//Define what will be put into the verification code file
-            var canContinue = null;
-
-            if(fs.existsSync(file) === false)
-            {
-                //Write verification code and channel name to file
-                jsonfile.writeFile(file, obj, {flag: "a"}, function (err) {
-                    if(err)return console.error(err);
-                });
-
-                //Set canContinue to true after data has been written to file
-                canContinue = true;
-            }
-            else
-            {
-                canContinue = false;
-                return message.channel.send(`I'm sorry ${sender}, you have already requested a code. Please check your whispers on Twitch to retrieve the code.`);
-            }
-
-            if(canContinue)
-            {
-                client.whisper(`${chn}`, `Your verification code is: ${code}`).then((data) => {
-                    /*data returns [username, message]*/
-                    return message.channel.send(`${sender}, A whisper has been sent to **${data[0]}** on Twitch, please use !verify with the code sent to you.`);
-                }).catch((err) => {
-                    return console.log(`WHISPER Error: ${err} | ${chn}`);
-                });
-            }
+            var code = discordFunctions.generateCode(6);//Generate a random 6 digit code
+            discordFunctions.joinChannel(args, message, fs, client, jsonfile, code);
         }
 
         //
         if(cmd === "leave")
         {
-            if(args === null || args === "" || !args)
-            {
-                message.channel.send("To have the bot leave your channel, please use ``/leave ChannelName``");
-                return message.delete();
-            }
-
-            var sender = message.member.user;//Get the sender name of the command
-            var senderID = message.member.id;//Get the discord user id
-            var senderTag = message.member.user.tag;//Get the discord user id
-            var chn = args;//Get the channel name from the command
-            var code = discordFunctions.generateCode();//Generate a random 6 digit code
-            var file = `./code/${code}.json`;//Define the code file name for the channel
-            var obj = { code: `${code}`, channel: `${chn}`, user: `${senderID}`, discordName: `${senderTag}`, type: `leave` };//Define what will be put into the verification code file
-            var canContinue = null;
-
-            if(fs.existsSync(file) === false)
-            {
-                //Write verification code and channel name to file
-                jsonfile.writeFile(file, obj, {flag: "a"}, function (err) {
-                    if(err)return console.error(err);
-                });
-
-                //Set canContinue to true after data has been written to file
-                canContinue = true;
-            }
-            else
-            {
-                canContinue = false;
-                return message.channel.send(`I'm sorry ${sender}, you have already requested a code. Please check your whispers on Twitch to retrieve the code.`);
-            }
-
-            if(canContinue)
-            {
-                client.whisper(`${chn}`, `Your verification code is: ${code}`).then((data) => {
-                    /*data returns [username, message]*/
-                    return message.channel.send(`${sender}, A whisper has been sent to **${data[0]}** on Twitch, please use !verify with the code sent to you.`);
-                }).catch((err) => {
-                    return console.log(`WHISPER Error: ${err} | ${chn}`);
-                });
-            }
+            var code = discordFunctions.generateCode(8);//Generate a random 6 digit code
+            discordFunctions.leaveChannel(args, message, fs, client, jsonfile, code);
         }
 
         //Check how many people banned in a channel
         if(cmd === "bans")
         {
-            if(args === null || args === "" || !args)
-            {
-                message.channel.send("Please include the Twitch channel name. ``/bans ChannelName``");
-                return message.delete();
-            }
-
-            var sender = message.member.user;//Get the sender name of the command
-            var canContinue = null;
-            var chn = args;
-            var file = `./channels/${chn}.json`;//Define the channel file name
-
-            //Make sure channel file exist
-            if(fs.existsSync(file) === true)
-            {
-                canContinue = true;
-            }
-            else//If channel file does not exist
-            {
-                canContinue = false;
-                return message.channel.send(`I'm sorry ${sender}, it appears I don't monitor that channel.`);
-            }
-
-            if(canContinue)
-            {
-                //Count number of lines in channel file
-                fs.readFile(file, 'utf8', (err, data) => {
-                    var banCount = data.split('\n').length;
-                    //Display ban count in chat
-                    return message.channel.send(`A total of **${banCount}** bans have been recorded in **${chn}**.`);
-                })
-            }
+            discordFunctions.banCount(args, message, fs);
         }
         //Check if a user is banned in channels
         if(cmd === "banned")
         {
-            if(args === null || args === "" || !args)
-            {
-                message.channel.send("Please use ``/banned TwitchName``");
-                return message.delete();
-            }
-
-            var userName = args;
-            var bannedChannels = new Array();
-
-            function searchFilesInDirectory(dir, filter, ext) {
-                if (!fs.existsSync(dir)) {
-                    console.log(`Specified directory: ${dir} does not exist`);
-                    return;
-                }
-            
-                const files = getFilesInDirectory(dir, ext);
-            
-                files.forEach(file => {
-                    const fileContent = fs.readFileSync(file);
-            
-                    // We want full words, so we use full word boundary in regex.
-                    const regex = new RegExp('\\b' + filter + '\\b');
-                    if (regex.test(fileContent)) {
-                        file = file.slice(9, -5);
-                        bannedChannels.push(file);
-                    }
-                });
-            }
-
-            function getFilesInDirectory(dir, ext) {
-                if (!fs.existsSync(dir)) {
-                    console.log(`Specified directory: ${dir} does not exist`);
-                    return;
-                }
-            
-                let files = [];
-                fs.readdirSync(dir).forEach(file => {
-                    const filePath = path.join(dir, file);
-                    const stat = fs.lstatSync(filePath);
-            
-                    // If we hit a directory, apply our function to that dir. If we hit a file, add it to the array of files.
-                    if (stat.isDirectory()) {
-                        const nestedFiles = getFilesInDirectory(filePath, ext);
-                        files = files.concat(nestedFiles);
-                    } else {
-                        if (path.extname(file) === ext) {
-                            files.push(filePath);
-                        }
-                    }
-                });
-            
-                return files;
-            }
-
-            searchFilesInDirectory("./channels/", userName, ".json");
-            var channelNames = "";
-
-            for(var n = 0; n < bannedChannels.length; n++)
-            {
-                //
-                channelNames += `**${bannedChannels[n]}**\n`;
-            }
-
-            return message.channel.send(`*__${userName}__* is currently banned in the following channels:\n${channelNames}`);
+            discordFunctions.checkBanned(fs, path, message, args);
         }
 
         //Command list
@@ -410,11 +153,11 @@ client.on("connected", (address, port) => {
     for(var i = 0; i < options.channels.length; i++)
     {
         conChannels += 1;//Increase the connected channels counter
-        var chan = options.channels[i];
-        console.log(chan, "is connected.");//Log connection status to the console
+        /*var chan = options.channels[i];
+        console.log(chan, "is connected.");//Log connection status to the console*/
     }
 
-    console.log(`Connected to ${conChannels} twitch channels.`);//Log the amount of channels connected in console
+    console.log(`Connected to [${conChannels}] Twitch channels.`);//Log the amount of channels connected in console
 });
 
 //Triggered upon joining a channel. Gives you the current state of the channel.
