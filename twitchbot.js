@@ -38,16 +38,18 @@ bot.on("message", async message => {
 
     let thisChannel = message.channel.name;//Get current channel command is sent in
     let botChannel = botconfig.botChannel;//Define the bot command channel
-    let messageArray = message.content.split(" ");//Create array from message sent in chat
-    let cmd = messageArray[0].slice(1);//Grab the command from the array
-    let args = messageArray[1];//Grab the argument from the array
-    var code6 = discordFunctions.generateCode(6);//Generate a random 6 digit code
-    var code8 = discordFunctions.generateCode(8);//Generate a random 6 digit code
 
     if(message.content.startsWith(botconfig.prefix))
     {
         //If the channel the command is ran is not the bot channel, delete the message
         if(thisChannel !== botChannel)return message.delete();
+
+        //Variables
+        let messageArray = message.content.split(" ");//Create array from message sent in chat
+        let cmd = messageArray[0].slice(1);//Grab the command from the array
+        let args = messageArray[1];//Grab the argument from the array
+        var code6 = discordFunctions.generateCode(6);//Generate a random 6 digit code
+        var code8 = discordFunctions.generateCode(8);//Generate a random 6 digit code
 
         switch(cmd)
         {
