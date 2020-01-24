@@ -45,7 +45,7 @@ bot.on("message", async message => {
     if(message.content.startsWith(botconfig.prefix))
     {
         //If the channel the command is ran is not the bot channel, delete the message
-        if(thisChannel !== botChannel)return;
+        if(thisChannel !== botChannel)return message.delete();
 
         //Verify the discord user is the broadcaster for the twitch channel
         if(cmd === "verify")
