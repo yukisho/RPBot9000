@@ -45,6 +45,7 @@ bot.on("message", async message => {
         if(thisChannel !== botChannel)return message.delete();
 
         //Variables
+        let sender = message.member.user;
         let messageArray = message.content.split(" ");//Create array from message sent in chat
         let cmd = messageArray[0].slice(1);//Grab the command from the array
         let args = messageArray[1];//Grab the argument from the array
@@ -58,6 +59,7 @@ bot.on("message", async message => {
             case "leave": return discordFunctions.leaveChannel(args, message, fs, client, jsonfile, code8);
             case "bans": return discordFunctions.banCount(args, message, fs);
             case "banned": return discordFunctions.checkBanned(fs, path, message, args);
+            case "history": return discordFunctions.getUserMessages(args, fs, message, sender);
             case "commands": return message.channel.send("To get started, type ``/join CHANNELNAME`` here. Please keep in mind that you can only add the bot to your own channel and no one elses.");
             case "help": return message.channel.send("To get started, type ``/join CHANNELNAME`` here. Please keep in mind that you can only add the bot to your own channel and no one elses.");
             case "?": return message.channel.send("To get started, type ``/join CHANNELNAME`` here. Please keep in mind that you can only add the bot to your own channel and no one elses.");
@@ -151,5 +153,12 @@ client.on("timeout", (channel, username, reason, duration, userstate) => {
 
 //Receieve a whisper from a user on twitch
 client.on("whisper", (from, userstate, message, self) => {
+    if(self)return;
     twitchFunctions.onWhisper(from, message, self, client);
+});
+
+//Log user chat messages
+client.on("chat", (channel, userstate, message, self) => {
+    if(self)return;
+    twitchFunctions.logMessages(channel, userstate, message, fs, fsextra);
 });
