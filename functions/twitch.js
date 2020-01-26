@@ -58,8 +58,6 @@ module.exports = {
     },
 
     onWhisper: (from, message, self, client) => {
-        if(self)return;//If the whisper is from myself, ignore it
-
         //Send a reply to the user that sent the whisper
         return client.whisper(from, "Uh oh! I'm just a bot! If you are intrested in adding this bot to your twitch channel, please visit us on discord at https://discord.io/rpbot9000").then((data) => {
             // data returns [username, message]
@@ -101,5 +99,64 @@ module.exports = {
         }
 
         console.log(`Connected to [${conChannels}] Twitch channels.`);//Log the amount of channels connected in console
+    },
+
+    logMessages: (channel, userstate, message, fs, fsextra) => {
+        //Define the user file
+        var file = `./users/${userstate.username}.txt`;
+
+        //Define the contents to be written to file
+        var contents = `${channel} | ${userstate.username} | ${message}`;
+
+        //get the line count of the user file
+        function lineCount(fs, file){
+            //Count number of lines in channel file
+            fs.readFile(file, 'utf8', (err, data) => {
+                var lineCount = data.split('\n').length;
+                return lineCount;
+            });
+        }
+
+        //Create the user file
+        function createFile(fsextra, fs, file, contents){
+            //If users file does not exist, create it
+            fsextra.ensureFile(file).then(() => {
+                //Write chat data to user file after user file has been created
+                return writeToFile(fs, file, contents);
+            }).catch(err => {
+                return console.log(`ensureFile: ${err}`);
+            });
+        }
+
+        //Write data to the user file
+        function writeToFile(fs, file, contents){
+            //Write chat data to user file
+            fs.writeFile(file, contents, (err) => {
+                if(err)return console.log(err);
+            });
+        }
+
+        //Write data to the user file
+        function appendToFile(fs, file, contents){
+            //Write chat data to user file
+            fs.appendFile(file, `\n${contents}`, (err) => {
+                if(err)return console.log(err);
+            });
+        }
+
+        //Check to see if users text file exists
+        if(fs.existsSync(file) === true)
+        {
+            //Get the line count in the user file
+            lineCount(fs, file);
+
+            //Write to the user file
+            return appendToFile(fs, file, contents);
+        }
+        else
+        {
+            //Create the user file and write to it
+            createFile(fsextra, fs, file, contents);
+        }
     }
 }

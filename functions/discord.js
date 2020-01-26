@@ -227,7 +227,7 @@ module.exports = {
                 var banCount = data.split('\n').length;
                 //Display ban count in chat
                 return message.channel.send(`A total of **${banCount}** bans have been recorded in **${chn}**.`);
-            })
+            });
         }
     },
 
@@ -302,6 +302,27 @@ module.exports = {
         else
         {
             return message.channel.send(`*__${userName}__* is currently not banned in any channel.`);
+        }
+    },
+
+    getUserMessages: (args, fs, message, sender) => {
+        //
+        if(!args || args === "" || args === undefined || args === null)return message.channel.send(`${sender}, Please include a Twitch username. Example: /history therealgravvy`);
+        var file = `./users/${args}.txt`;
+        readLastLines = require('read-last-lines');
+
+        if(fs.existsSync(file) === true)
+        {
+            //Get the last 25 lines from the user file
+            readLastLines.read(file, 25).then((lines) =>{
+                return message.channel.send(`Last 25 messages from __${args}__` + "```" + lines + "```");
+            }).catch((err) => {
+                console.log(err);
+            });
+        }
+        else
+        {
+            return message.channel.send(`${sender}, Sorry that user does not exist in our database yet.`);
         }
     }
 }
